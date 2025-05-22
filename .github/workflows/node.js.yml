@@ -71,6 +71,8 @@ jobs:
 
   version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     needs: [build, should_publish_on_npm]
 
     if: github.ref == 'refs/heads/main'
@@ -111,7 +113,7 @@ jobs:
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
         with:
           generate_release_notes: true
-          tag_name: main-$(date +%s)
+          tag_name: ${{ github.ref_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
