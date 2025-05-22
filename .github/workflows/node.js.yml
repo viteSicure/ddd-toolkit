@@ -55,10 +55,23 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+  
+  should_publish_on_npm:
+    name: check if NPM_TOKEN is set in github secrets
+    runs-on: ubuntu-latest
+    outputs:
+      SHOULD_PUBLISH_ON_NPM: ${{ steps.should_publish_on_npm_job.outputs.SHOULD_PUBLISH_ON_NPM }}
+    steps:
+      - id: should_publish_on_npm_job
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+            echo "SHOULD_PUBLISH_ON_NPM: ${{ env.NPM_TOKEN != '' }}"
+            echo "SHOULD_PUBLISH_ON_NPM=${{ env.NPM_TOKEN != '' }}" >> $GITHUB_OUTPUT
 
   version:
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build, should_publish_on_npm]
 
     if: github.ref == 'refs/heads/main'
     steps:
@@ -70,6 +83,7 @@ jobs:
 
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
+        if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'true'
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
@@ -82,20 +96,21 @@ jobs:
       - name: Build
         run: pnpm run build
 
-      - name: Create and publish versions
+      - name: Create and publish versions on NPM
         uses: changesets/action@v1
+        if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUSKY: 0
-        if: env.NODE_AUTH_TOKEN != null
         with:
           publish: pnpm ci:publish --no-git-checks
 
-      - name: Create and publish version locally
-        run: pnpm publish --registry=https://npm.pkg.github.com/
+      - name: Create and publish versions on github
+        uses: softprops/action-gh-release@v2
+        if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
+        with:
+          generate_release_notes: true
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        if: env.NPM_TOKEN == null
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
