@@ -108,14 +108,21 @@ jobs:
         with:
           publish: pnpm ci:publish --no-git-checks
 
-      - name: Create and publish versions on github
-        uses: softprops/action-gh-release@v2
+      - run: echo "tag=main-$(date -u +'%Y-%m-%d-%H-%M')" >> "$GITHUB_OUTPUT"
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
+        id: tag
+      - name: Zip toolkit directory
+        if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
+        run: |
+          cd packages/ddd-toolkit
+          zip -r ../../ddd-toolkit.zip .
+      - name: Create and publish versions on github
+        if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
+        uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
-          tag_name: ${{ github.ref_name }}
-          files: |
-            packages/ddd-toolkit/*
+          tag_name: ${{ steps.tag.outputs.tag }}
+          files: ddd-toolkit.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
