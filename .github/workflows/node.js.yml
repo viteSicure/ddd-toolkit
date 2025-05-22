@@ -111,6 +111,7 @@ jobs:
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
         with:
           generate_release_notes: true
+          tag_name: main-$(date +%s)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
