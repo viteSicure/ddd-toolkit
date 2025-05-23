@@ -115,7 +115,7 @@ jobs:
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
         run: |
           cd packages/ddd-toolkit
-          tar --format=gnu -czf ../../ddd-toolkit.tgz .
+          pnpm pack --out ../../ddd-toolkit.tgz
       - name: Create and publish versions on github
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
         uses: softprops/action-gh-release@v2
