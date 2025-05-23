@@ -115,14 +115,14 @@ jobs:
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
         run: |
           cd packages/ddd-toolkit
-          zip -r ../../ddd-toolkit.zip .
+          tar -czf ../../ddd-toolkit.tgz .
       - name: Create and publish versions on github
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
           tag_name: ${{ steps.tag.outputs.tag }}
-          files: ddd-toolkit.zip
+          files: ddd-toolkit.tgz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
