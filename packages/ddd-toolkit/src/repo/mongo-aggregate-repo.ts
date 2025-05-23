@@ -1,26 +1,15 @@
 import { IRepoHooks } from './repo-hooks';
-import { ClientSession, Collection, Document, MongoClient, WithId } from 'mongodb';
+import { ClientSession, Collection, MongoClient, WithId } from 'mongodb';
 import { ISerializer } from './serializer.interface';
 import { merge } from 'lodash';
 import { AggregateNotFoundError, DuplicatedIdError, OptimisticLockError, RepoHookError } from '../errors';
 import { ILogger } from '../logger';
 import { IInit } from '../init.interface';
-
-export interface IAggregateRepo<A> {
-    getById: (id: string) => Promise<WithVersion<A> | null>;
-    getByIdOrThrow: (id: string) => Promise<WithVersion<A>>;
-    save: (aggregate: A) => Promise<void>;
-}
-
-export type DocumentWithId = { id: string } & Document;
-
-export type WithVersion<T> = T & { __version: number };
-
-export type WithOptionalVersion<T> = T & { __version?: number };
+import { DocumentWithId, IRepo, WithOptionalVersion, WithVersion } from './repo.interface';
 
 // TODO probably we should create a dedicated interface whit like DocumentWithIdAndTimestamps
 
-export class MongoAggregateRepo<A, AM extends DocumentWithId> implements IAggregateRepo<A>, IInit {
+export class MongoAggregateRepo<A, AM extends DocumentWithId> implements IRepo<A>, IInit {
     protected readonly collection: Collection<AM>;
     protected readonly MONGODB_UNIQUE_INDEX_CONSTRAINT_ERROR = 11000;
 
@@ -70,6 +59,7 @@ export class MongoAggregateRepo<A, AM extends DocumentWithId> implements IAggreg
             },
             { upsert: true, session, ignoreUndefined: true },
         );
+        // FIXME in this point we don't know whether the aggregate will be successfully saved or not
         this.logger.debug(
             `Aggregate with id ${
                 aggregateModel.id

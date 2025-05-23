@@ -29,9 +29,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: pnpm/action-setup@v3
-        with:
-          version: latest
+      - uses: pnpm/action-setup@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -78,16 +76,13 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v3
-        with:
-          version: latest
-
+      - uses: pnpm/action-setup@v4
+      
       - name: Setup Node.js 20
         uses: actions/setup-node@v4
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'true'
         with:
-          node-version: 20
+          node-version: 20.19
           registry-url: 'https://registry.npmjs.org'
           scope: '@fizzbuds'
           cache: 'pnpm'
