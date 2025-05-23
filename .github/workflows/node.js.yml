@@ -103,7 +103,7 @@ jobs:
         with:
           publish: pnpm ci:publish --no-git-checks
 
-      - run: echo "tag=main-$(date -u +'%Y-%m-%d-%H-%M')" >> "$GITHUB_OUTPUT"
+      - run: echo "tag=main-$(echo $GITHUB_SHA | cut -c1-7)" >> "$GITHUB_OUTPUT"
         if: needs.should_publish_on_npm.outputs.SHOULD_PUBLISH_ON_NPM == 'false'
         id: tag
       - name: Zip toolkit directory
